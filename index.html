@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#050608">
+  <meta name="description" content="A privacy-first paranormal investigation word and sensor experiment app.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon.svg">
+  <title>OVULUS // Paranormal Field Lab</title>
+  <style>
+    :root{--bg:#050608;--panel:#0b0e12;--line:#20262d;--text:#eef2f4;--muted:#8c969f;--accent:#d9f7ff;--warn:#ffcc66;--danger:#ff6b6b}
+    *{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 50% -10%,#17212b 0,#050608 38%);color:var(--text);font:15px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}
+    .wrap{max-width:900px;margin:auto;padding:18px 14px 36px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+    .brand{letter-spacing:.22em;font-weight:800;font-size:18px}.status{font-size:11px;color:#9fb0ba;letter-spacing:.12em}
+    .display{min-height:230px;border:1px solid var(--line);background:linear-gradient(180deg,#090c10,#06080b);border-radius:18px;display:grid;place-items:center;text-align:center;padding:25px;box-shadow:0 20px 70px #0008}
+    #word{font-size:clamp(42px,10vw,92px);font-weight:800;letter-spacing:.04em;text-transform:uppercase;word-break:break-word;text-shadow:0 0 25px #b9f0ff33}.sub{color:var(--muted);font-size:12px;letter-spacing:.12em;margin-top:8px}
+    .controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:12px 0}button,select,input{font:inherit}
+    button{border:1px solid var(--line);background:#10151a;color:var(--text);border-radius:12px;padding:13px 12px;font-weight:700}button:active{transform:translateY(1px)}
+    .primary{background:#dceff4;color:#071015}.danger{color:#ffb5b5}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+    .card{border:1px solid var(--line);background:#0b0e12;border-radius:14px;padding:14px}.label{font-size:10px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase}.value{font-size:23px;margin-top:5px}
+    .meter{height:7px;background:#171c21;border-radius:99px;overflow:hidden;margin-top:9px}.bar{height:100%;width:0;background:#cfeef7;transition:width .15s}
+    section{margin-top:14px}.panel{border:1px solid var(--line);background:#090c10;border-radius:14px;padding:14px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.row>*{flex:1;min-width:120px}
+    label{display:block;color:var(--muted);font-size:11px;margin-bottom:5px}input,select{width:100%;padding:11px;background:#0e1318;color:var(--text);border:1px solid var(--line);border-radius:10px}
+    #log{max-height:300px;overflow:auto;margin-top:8px}.entry{padding:10px 0;border-bottom:1px solid #171c21;display:flex;justify-content:space-between;gap:12px}.entry b{font-size:17px}.tiny{font-size:11px;color:var(--muted)}
+    .notice{font-size:11px;line-height:1.55;color:#9ca7af}.footer{color:#69747d;font-size:10px;text-align:center;margin-top:20px}
+    @media(max-width:650px){.controls{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr 1fr}.display{min-height:190px}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><div class="brand">OVULUS</div><div class="status" id="status">FIELD LAB // OFFLINE</div></div>
+  <div class="display">
+    <div><div id="word">READY</div><div class="sub" id="source">1,000,000-ENTRY WORD BANK</div></div>
+  </div>
+  <div class="controls">
+    <button class="primary" id="start">START SESSION</button>
+    <button id="scan">SCAN / WORD</button>
+    <button id="speak">SPEAK</button>
+    <button id="freeze">FREEZE</button>
+    <button id="logBtn">LOG WORD</button>
+    <button class="danger" id="clear">CLEAR LOG</button>
+  </div>
+
+  <section class="grid">
+    <div class="card"><div class="label">Magnetic field</div><div class="value" id="mag">-- µT</div><div class="meter"><div class="bar" id="magbar"></div></div></div>
+    <div class="card"><div class="label">Motion</div><div class="value" id="motion">--</div><div class="meter"><div class="bar" id="motionbar"></div></div></div>
+    <div class="card"><div class="label">Entropy</div><div class="value" id="entropy">--</div><div class="meter"><div class="bar" id="entbar"></div></div></div>
+  </section>
+
+  <section class="panel">
+    <div class="row">
+      <div><label>Mode</label><select id="mode"><option value="balanced">Balanced</option><option value="paranormal">Paranormal weighted</option><option value="rare">Rare / unusual</option><option value="pure">Pure random</option></select></div>
+      <div><label>Auto scan interval</label><select id="interval"><option value="0">Manual</option><option value="1500">1.5 sec</option><option value="2500">2.5 sec</option><option value="5000">5 sec</option><option value="10000">10 sec</option></select></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="label">Investigation log</div>
+    <div id="log"><div class="tiny">No logged words.</div></div>
+  </section>
+
+  <section class="panel notice">
+    <b>How the engine works:</b> each scan combines cryptographically secure browser randomness with available motion and magnetic-sensor readings, session state, and a large word bank. Sensor data changes the selection process; it is not treated as evidence of spirits. Many phones do not expose a true magnetometer or environmental temperature sensor to web apps.
+  </section>
+  <div class="footer">OVULUS FIELD LAB • local-first PWA • no account required</div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

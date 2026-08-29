@@ -1,0 +1,9 @@
+{
+  "name": "Ovulus Field Lab",
+  "short_name": "Ovulus",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#050608",
+  "theme_color": "#050608",
+  "description": "Paranormal investigation word and sensor experiment app."
+}
