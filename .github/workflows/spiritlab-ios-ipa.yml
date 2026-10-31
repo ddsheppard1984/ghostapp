@@ -1,0 +1,50 @@
+name: SpiritLab iPhone IPA (unsigned)
+on:
+  push:
+    branches:
+      - feature/spiritlab-native-ios-free-build-20261031
+    paths:
+      - 'ios/**'
+      - '.github/workflows/spiritlab-ios-ipa.yml'
+  pull_request:
+    paths:
+      - 'ios/**'
+      - '.github/workflows/spiritlab-ios-ipa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build-ios:
+    runs-on: macos-15
+    timeout-minutes: 30
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Generate Xcode project
+        run: |
+          brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
+          cd ios
+          xcodegen generate
+      - name: Build native iOS without code signing
+        run: |
+          set -euo pipefail
+          xcodebuild -project ios/SpiritLab.xcodeproj -scheme SpiritLab \
+            -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
+            -derivedDataPath "$RUNNER_TEMP/SpiritLabDerived" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+      - name: Create unsigned IPA for SideStore
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/SpiritLabDerived/Build/Products/Release-iphoneos/SpiritLab.app"
+          test -d "$APP"
+          mkdir -p ios-build-payload/Payload ios-build-output
+          ditto "$APP" ios-build-payload/Payload/SpiritLab.app
+          ( cd ios-build-payload && zip -qry ../ios-build-output/SpiritLab-unsigned.ipa Payload )
+          shasum -a 256 ios-build-output/SpiritLab-unsigned.ipa > ios-build-output/SHA256SUMS.txt
+      - name: Attach IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SpiritLab-unsigned-iPhone-IPA
+          path: ios-build-output/*
+          retention-days: 7
+          if-no-files-found: error
