@@ -9,14 +9,116 @@ import simd
 
 @main
 struct SpiritLabNativeApp: App {
-    @AppStorage("spiritLabURL") private var address = "https://sqeak--worker.tail7517d1.ts.net:8443/"
     var body: some Scene {
-        WindowGroup { SpiritLabBrowser(address: address) }
+        WindowGroup { SpiritLabConnectionScreen() }
+    }
+}
+
+// If Tailscale or the private HTTPS server is unreachable, explain why instead
+// of leaving the investigator with a blank, white WKWebView.
+struct SpiritLabConnectionScreen: View {
+    @AppStorage("spiritLabURL") private var address = "https://sqeak--worker.tail7517d1.ts.net:8443/"
+    @State private var reloadID = UUID()
+    @State private var statusText = "Connecting to your private SpiritLab..."
+    @State private var connecting = true
+    @State private var failure: String? = nil
+    @State private var settings = false
+    @State private var addressDraft = ""
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            Color(red: 0.04, green: 0.05, blue: 0.09).ignoresSafeArea()
+            SpiritLabBrowser(address: address) { message, failed in
+                connecting = message != nil && !failed
+                statusText = message ?? ""
+                failure = failed ? message : nil
+            }
+            .id(reloadID)
+            .ignoresSafeArea(edges: .bottom)
+            if connecting || failure != nil {
+                VStack(spacing: 16) {
+                    Image(systemName: failure == nil ? "waveform.path.ecg.rectangle" : "wifi.exclamationmark")
+                        .font(.system(size: 44)).foregroundStyle(.mint)
+                    Text(failure == nil ? "Connecting to SpiritLab" : "Connection Problem")
+                        .font(.title3.bold()).foregroundStyle(.white)
+                    Text(failure ?? statusText)
+                        .foregroundStyle(.white.opacity(0.85))
+                        .multilineTextAlignment(.center)
+                        .font(.subheadline)
+                        .textSelection(.enabled)
+                    if connecting { ProgressView().tint(.mint) }
+                    if failure != nil {
+                        Text("Ensure Tailscale is connected on this iPhone. Your Safari session and the app do not share their private web state.")
+                            .font(.caption).foregroundStyle(.white.opacity(0.7))
+                            .multilineTextAlignment(.center)
+                        Button("Retry") { reload() }.buttonStyle(.borderedProminent).tint(.mint)
+                        Button("Open in Safari") {
+                            if let url = URL(string: address), url.scheme == "https" {
+                                UIApplication.shared.open(url)
+                            }
+                        }.buttonStyle(.bordered)
+                    }
+                    Button("Server Settings") { addressDraft = address; settings = true }
+                        .foregroundStyle(.mint)
+                }
+                .padding(24).frame(maxWidth: 360)
+                .background(Color(red: 0.08, green: 0.10, blue: 0.16), in: RoundedRectangle(cornerRadius: 18))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+            Button {
+                addressDraft = address
+                settings = true
+            } label: {
+                Image(systemName: "gearshape.fill")
+                    .padding(12).background(.regularMaterial, in: Circle())
+            }
+            .accessibilityLabel("SpiritLab server settings")
+            .padding(12)
+        }
+        .sheet(isPresented: $settings) {
+            NavigationStack {
+                Form {
+                    Section("Private SpiritLab URL") {
+                        TextField("https://...", text: $addressDraft)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .keyboardType(.URL)
+                        Button("Save & Connect") {
+                            guard safeURL(addressDraft) else { return }
+                            address = addressDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                            settings = false
+                            reload()
+                        }.disabled(!safeURL(addressDraft))
+                    }
+                    Section("Connection") {
+                        Text("The iPhone must have Tailscale enabled. This app never bypasses certificate verification.")
+                    }
+                }
+                .navigationTitle("SpiritLab Settings")
+                .toolbar { ToolbarItem(placement: .topBarTrailing) {
+                    Button("Done") { settings = false }
+                }}
+            }
+        }
+    }
+
+    private func safeURL(_ input: String) -> Bool {
+        guard let url = URL(string: input.trimmingCharacters(in: .whitespacesAndNewlines)) else { return false }
+        return url.scheme == "https" && url.host != nil && url.user == nil && url.password == nil
+    }
+
+    private func reload() {
+        failure = nil
+        connecting = true
+        statusText = "Connecting to your private SpiritLab..."
+        reloadID = UUID()
     }
 }
 
 struct SpiritLabBrowser: UIViewRepresentable {
     let address: String
+    let onStatus: (String?, Bool) -> Void
+
     func makeCoordinator() -> Coordinator { Coordinator() }
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
@@ -27,16 +129,24 @@ struct SpiritLabBrowser: UIViewRepresentable {
             config.userContentController.add(context.coordinator, name: name)
         }
         let webView = WKWebView(frame: .zero, configuration: config)
+        webView.isOpaque = false
+        webView.backgroundColor = UIColor(red: 0.04, green: 0.05, blue: 0.09, alpha: 1)
         webView.navigationDelegate = context.coordinator
         webView.uiDelegate = context.coordinator
         context.coordinator.webView = webView
-        if let url = URL(string: address), url.scheme == "https", url.host != nil {
-            context.coordinator.allowedHost = url.host!
-            webView.load(URLRequest(url: url))
+        context.coordinator.onStatus = onStatus
+        if let url = URL(string: address), url.scheme == "https",
+           let host = url.host, url.user == nil, url.password == nil {
+            context.coordinator.allowedHost = host
+            webView.load(URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 25))
+        } else {
+            DispatchQueue.main.async { onStatus("Invalid HTTPS URL. Open Server Settings.", true) }
         }
         return webView
     }
-    func updateUIView(_ uiView: WKWebView, context: Context) { }
+    func updateUIView(_ uiView: WKWebView, context: Context) {
+        context.coordinator.onStatus = onStatus
+    }
     static func dismantleUIView(_ uiView: WKWebView, coordinator: Coordinator) {
         coordinator.stopAll()
         for name in ["spiritLabSensor", "spiritLabTorch", "spiritLabLidar", "spiritLabEnvironment"] {
@@ -47,6 +157,28 @@ struct SpiritLabBrowser: UIViewRepresentable {
     final class Coordinator: NSObject, WKNavigationDelegate, WKUIDelegate, WKScriptMessageHandler, ARSessionDelegate {
         weak var webView: WKWebView?
         var allowedHost = ""
+        var onStatus: ((String?, Bool) -> Void)?
+
+        func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+            onStatus?("Contacting SpiritLab via private Tailscale HTTPS...", false)
+        }
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            onStatus?(nil, false)
+        }
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            report(error)
+        }
+        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            report(error)
+        }
+        func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+            onStatus?("The web view stopped unexpectedly. Tap Retry.", true)
+        }
+        private func report(_ error: Error) {
+            let ns = error as NSError
+            if ns.domain == NSURLErrorDomain && ns.code == NSURLErrorCancelled { return }
+            onStatus?("\(ns.localizedDescription) (error \(ns.code))", true)
+        }
         private let motion = CMMotionManager()
         private let altimeter = CMAltimeter()
         private var session: ARSession?
