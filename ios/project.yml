@@ -1,0 +1,23 @@
+name: SpiritLab
+options:
+  bundleIdPrefix: com.houseofsqueak
+settings:
+  base:
+    SWIFT_VERSION: '5.10'
+    IPHONEOS_DEPLOYMENT_TARGET: '17.0'
+    TARGETED_DEVICE_FAMILY: '1,2'
+targets:
+  SpiritLab:
+    type: application
+    platform: iOS
+    sources:
+      - path: SpiritLab
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.houseofsqueak.spiritlab
+        INFOPLIST_KEY_CFBundleDisplayName: SpiritLab
+        INFOPLIST_KEY_NSCameraUsageDescription: SpiritLab uses the camera for your requested recordings and LiDAR session.
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: SpiritLab records EVP audio only when you activate the microphone.
+        INFOPLIST_KEY_NSMotionUsageDescription: SpiritLab reads magnetic and motion sensors for your investigation.
+        INFOPLIST_KEY_UIRequiresFullScreen: 'NO'
+        ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: 'NO'
