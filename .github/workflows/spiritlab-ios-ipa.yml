@@ -31,7 +31,8 @@ jobs:
           xcodebuild -project ios/SpiritLab.xcodeproj -scheme SpiritLab \
             -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' \
             -derivedDataPath "$RUNNER_TEMP/SpiritLabDerived" \
-            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            CURRENT_PROJECT_VERSION="$((431 + GITHUB_RUN_NUMBER))" build
       - name: Create unsigned IPA for SideStore
         run: |
           set -euo pipefail
