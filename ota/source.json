@@ -16,12 +16,12 @@
       "category": "utilities",
       "versions": [
         {
-          "version": "4.3.2",
-          "buildVersion": "446",
-          "date": "2026-11-01T01:42:09+00:00",
-          "localizedDescription": "v4.3.2 build 446: secure public HTTPS without phone Tailscale.",
+          "version": "4.3.3",
+          "buildVersion": "448",
+          "date": "2026-11-01T01:45:41+00:00",
+          "localizedDescription": "v4.3.3 build 448: unique ghost/radar Home Screen icon.",
           "downloadURL": "https://raw.githubusercontent.com/ddsheppard1984/ghostapp/spiritlab-ios-updates/ota/SpiritLab.ipa",
-          "size": 84279,
+          "size": 2355654,
           "minOSVersion": "17.0"
         }
       ]
