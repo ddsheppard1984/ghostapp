@@ -1,0 +1,31 @@
+{
+  "name": "House of Squeak \u2014 SpiritLab",
+  "identifier": "com.houseofsqueak.spiritlab.source",
+  "sourceURL": "https://raw.githubusercontent.com/ddsheppard1984/ghostapp/spiritlab-ios-updates/ota/source.json",
+  "description": "Free iPhone updates for the SpiritLab native field investigation app.",
+  "iconURL": "https://raw.githubusercontent.com/ddsheppard1984/ghostapp/spiritlab-ios-updates/ota/icon.png",
+  "tintColor": "6BEAC9",
+  "apps": [
+    {
+      "name": "SpiritLab",
+      "bundleIdentifier": "com.houseofsqueak.spiritlab",
+      "developerName": "House of Squeak",
+      "subtitle": "Real-time field investigation tools",
+      "localizedDescription": "Private Lenovo-powered EVP, camera, LiDAR depth readings, body-pose estimates, motion sensors and virtual spirit box. Measurements are not proof of paranormal phenomena.",
+      "iconURL": "https://raw.githubusercontent.com/ddsheppard1984/ghostapp/spiritlab-ios-updates/ota/icon.png",
+      "category": "utilities",
+      "versions": [
+        {
+          "version": "4.3.1",
+          "buildVersion": "431",
+          "date": "2026-11-01T00:23:04+00:00",
+          "localizedDescription": "v4.3.1 improves free SideStore update delivery.",
+          "downloadURL": "https://raw.githubusercontent.com/ddsheppard1984/ghostapp/spiritlab-ios-updates/ota/SpiritLab.ipa",
+          "size": 79777,
+          "minOSVersion": "17.0"
+        }
+      ]
+    }
+  ],
+  "news": []
+}
