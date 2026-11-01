@@ -17,11 +17,11 @@
       "versions": [
         {
           "version": "4.3.2",
-          "buildVersion": "445",
-          "date": "2026-11-01T01:41:22+00:00",
-          "localizedDescription": "v4.3.2 build 445: secure public HTTPS without phone Tailscale.",
+          "buildVersion": "446",
+          "date": "2026-11-01T01:42:09+00:00",
+          "localizedDescription": "v4.3.2 build 446: secure public HTTPS without phone Tailscale.",
           "downloadURL": "https://raw.githubusercontent.com/ddsheppard1984/ghostapp/spiritlab-ios-updates/ota/SpiritLab.ipa",
-          "size": 83411,
+          "size": 84279,
           "minOSVersion": "17.0"
         }
       ]
