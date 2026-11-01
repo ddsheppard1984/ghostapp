@@ -184,6 +184,7 @@ struct SpiritLabBrowser: UIViewRepresentable {
         private var session: ARSession?
         private let depthQueue = DispatchQueue(label: "spiritlab.arkit.depth", qos: .userInitiated)
         private var lastDepthTime = 0.0
+        private var lastPoseTime = -100.0
         private var lastPosition: SIMD3<Float>?
         private var lastMedian: Float?
 
@@ -266,6 +267,10 @@ struct SpiritLabBrowser: UIViewRepresentable {
                 return
             }
             stopDepth()
+            lastDepthTime = -100.0
+            lastPoseTime = -100.0
+            lastMedian = nil
+            lastPosition = nil
             let tracking = ARWorldTrackingConfiguration()
             tracking.frameSemantics.insert(.sceneDepth)
             let newSession = ARSession()
@@ -314,6 +319,48 @@ struct SpiritLabBrowser: UIViewRepresentable {
                 "depthDeltaM":Double(delta),"cameraMotionM":Double(moved),
                 "validSamples":distances.count,"tracking":"sensor-derived",
                 "capturedAt":ISO8601DateFormatter().string(from:Date())])
+            if frame.timestamp - lastPoseTime >= 1.6 {
+                lastPoseTime = frame.timestamp
+                detectOpticalHumanPose(frame.capturedImage)
+            }
+        }
+        private func detectOpticalHumanPose(_ captured: CVPixelBuffer) {
+            // Apple Vision is an optical human-pose *prediction*; never label as a spirit.
+            let request = VNDetectHumanBodyPoseRequest()
+            let handler = VNImageRequestHandler(cvPixelBuffer: captured, options: [:])
+            do {
+                try handler.perform([request])
+                let people = (request.results ?? []).prefix(3)
+                let names: [(VNHumanBodyPoseObservation.JointName, String)] = [
+                    (.nose,"nose"),(.neck,"neck"),(.leftShoulder,"leftShoulder"),
+                    (.rightShoulder,"rightShoulder"),(.leftElbow,"leftElbow"),
+                    (.rightElbow,"rightElbow"),(.leftWrist,"leftWrist"),
+                    (.rightWrist,"rightWrist"),(.leftHip,"leftHip"),
+                    (.rightHip,"rightHip"),(.leftKnee,"leftKnee"),
+                    (.rightKnee,"rightKnee"),(.leftAnkle,"leftAnkle"),
+                    (.rightAnkle,"rightAnkle")
+                ]
+                let skeletons: [[String: Any]] = people.map { person in
+                    var points = [String: [String: Double]]()
+                    for (key, name) in names {
+                        if let point = try? person.recognizedPoint(key), point.confidence >= 0.45 {
+                            points[name] = ["x": Double(point.location.x),
+                                            "y": Double(point.location.y),
+                                            "conf": Double(point.confidence)]
+                        }
+                    }
+                    return ["joints": points]
+                }
+                emit("spiritlab:native-depth", [
+                    "kind": "pose", "source": "iOS Vision optical body-pose model",
+                    "skeletons": skeletons, "people": skeletons.count,
+                    "note": "Camera-based prediction only; ordinary people or false positives possible",
+                    "capturedAt": ISO8601DateFormatter().string(from: Date())
+                ])
+            } catch {
+                emit("spiritlab:native-depth", ["kind": "pose", "skeletons": [],
+                     "note": "Optical model unavailable for current camera image"])
+            }
         }
         func stopAll() {
             motion.stopMagnetometerUpdates()
