@@ -17,7 +17,7 @@ struct SpiritLabNativeApp: App {
 // If Tailscale or the private HTTPS server is unreachable, explain why instead
 // of leaving the investigator with a blank, white WKWebView.
 struct SpiritLabConnectionScreen: View {
-    @AppStorage("spiritLabURL") private var address = "https://sqeak--worker.tail7517d1.ts.net:8443/"
+    @AppStorage("spiritLabURL") private var address = "https://spiritlab.houseofsqueak.com/"
     @State private var reloadID = UUID()
     @State private var statusText = "Connecting to your private SpiritLab..."
     @State private var connecting = true
@@ -74,6 +74,13 @@ struct SpiritLabConnectionScreen: View {
             }
             .accessibilityLabel("SpiritLab server settings")
             .padding(12)
+        }
+        .onAppear {
+            // Upgrade only our original default. Preserve explicitly chosen custom hosts.
+            if address == "https://sqeak--worker.tail7517d1.ts.net:8443/" {
+                address = "https://spiritlab.houseofsqueak.com/"
+                reload()
+            }
         }
         .sheet(isPresented: $settings) {
             NavigationStack {
@@ -371,7 +378,13 @@ struct SpiritLabBrowser: UIViewRepresentable {
         func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction,
                      decisionHandler: @escaping (WKNavigationActionPolicy)->Void) {
             guard let url = action.request.url else { decisionHandler(.cancel); return }
-            if url.scheme == "https",url.host == allowedHost { decisionHandler(.allow) }
+            if url.scheme == "https", (url.host == allowedHost ||
+                (allowedHost == "spiritlab.houseofsqueak.com" &&
+                 url.host == "weathered-leaf-b8c1.cloudflareaccess.com")) {
+                // Permit only our exact Cloudflare Access login host; never bridge
+                // native sensor commands into its origin (handled by the host guard).
+                decisionHandler(.allow)
+            }
             else if action.navigationType == .linkActivated,url.scheme == "https" {
                 UIApplication.shared.open(url)
                 decisionHandler(.cancel)
