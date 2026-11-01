@@ -17,11 +17,11 @@
       "versions": [
         {
           "version": "4.3.1",
-          "buildVersion": "431",
-          "date": "2026-11-01T00:24:25+00:00",
-          "localizedDescription": "v4.3.1 build 431: native sensors and one-tap OTA.",
+          "buildVersion": "442",
+          "date": "2026-11-01T00:24:41+00:00",
+          "localizedDescription": "v4.3.1 build 442: native sensors and one-tap OTA.",
           "downloadURL": "https://raw.githubusercontent.com/ddsheppard1984/ghostapp/spiritlab-ios-updates/ota/SpiritLab.ipa",
-          "size": 79777,
+          "size": 79780,
           "minOSVersion": "17.0"
         }
       ]
