@@ -12,7 +12,7 @@ on:
       - '.github/workflows/spiritlab-ios-ipa.yml'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   build-ios:
     runs-on: macos-15
@@ -48,3 +48,20 @@ jobs:
           path: ios-build-output/*
           retention-days: 7
           if-no-files-found: error
+      - name: Publish SideStore OTA source and unsigned IPA
+        if: github.event_name == 'push' && github.ref == 'refs/heads/feature/spiritlab-native-ios-free-build-20261031'
+        run: |
+          set -euo pipefail
+          git fetch origin refs/heads/spiritlab-ios-updates:refs/remotes/origin/spiritlab-ios-updates
+          DEST="$RUNNER_TEMP/SpiritLabOTAPublish"
+          git worktree add -B spiritlab-ios-updates "$DEST" origin/spiritlab-ios-updates
+          python3 ios/ota_publish.py ios-build-output/SpiritLab-unsigned.ipa "$DEST/ota"
+          git -C "$DEST" config user.name "github-actions[bot]"
+          git -C "$DEST" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git -C "$DEST" add ota/source.json ota/SpiritLab.ipa ota/icon.png
+          if git -C "$DEST" diff --cached --quiet; then
+            echo 'No OTA changes'
+          else
+            git -C "$DEST" commit -m "Publish SpiritLab v4.3.1 OTA package"
+            git -C "$DEST" push origin HEAD:refs/heads/spiritlab-ios-updates
+          fi
