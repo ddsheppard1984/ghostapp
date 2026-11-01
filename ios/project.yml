@@ -6,7 +6,7 @@ settings:
     SWIFT_VERSION: '5.10'
     IPHONEOS_DEPLOYMENT_TARGET: '17.0'
     TARGETED_DEVICE_FAMILY: '1,2'
-    MARKETING_VERSION: '4.3.2'
+    MARKETING_VERSION: '4.3.3'
     CURRENT_PROJECT_VERSION: '431'
 targets:
   SpiritLab:
@@ -18,6 +18,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.houseofsqueak.spiritlab
         GENERATE_INFOPLIST_FILE: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_CFBundleDisplayName: SpiritLab
         INFOPLIST_KEY_NSCameraUsageDescription: SpiritLab uses the camera for your requested recordings and LiDAR session.
         INFOPLIST_KEY_NSMicrophoneUsageDescription: SpiritLab records EVP audio only when you activate the microphone.

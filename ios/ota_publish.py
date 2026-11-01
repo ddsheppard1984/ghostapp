@@ -60,11 +60,11 @@ def main(ipa_file: str, output_dir: str) -> None:
     assert data["CFBundleIdentifier"] == BUNDLE_ID, "Unexpected bundle identifier"
     version = data.get("CFBundleShortVersionString")
     build = data.get("CFBundleVersion")
-    assert version == "4.3.2" and str(build).isdigit() and int(build) >= 431, (
+    assert version == "4.3.3" and str(build).isdigit() and int(build) >= 431, (
         f"Unexpected version {version!r} / {build!r}"
     )
     (out / "SpiritLab.ipa").write_bytes(ipa.read_bytes())
-    make_icon(out / "icon.png")
+    __import__("shutil").copyfile("ios/SpiritLab/Assets.xcassets/AppIcon.appiconset/AppIcon.png", out / "icon.png")
     now = dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat()
     feed = {
         "name": "House of Squeak — SpiritLab",
@@ -89,7 +89,7 @@ def main(ipa_file: str, output_dir: str) -> None:
                 "version": version,
                 "buildVersion": str(build),
                 "date": now,
-                "localizedDescription": f"v4.3.2 build {build}: secure public HTTPS without phone Tailscale.",
+                "localizedDescription": f"v4.3.3 build {build}: unique ghost/radar Home Screen icon.",
                 "downloadURL": BASE_URL + "SpiritLab.ipa",
                 "size": ipa.stat().st_size,
                 "minOSVersion": "17.0"

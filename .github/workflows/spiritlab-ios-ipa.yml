@@ -20,6 +20,13 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+      - name: Install selected SpiritLab ghost icon into native asset catalog
+        run: |
+          set -euo pipefail
+          test -s ios/SpiritLab/IconArt/SpiritLab.jpg
+          mkdir -p ios/SpiritLab/Assets.xcassets/AppIcon.appiconset
+          sips -s format png -z 1024 1024 ios/SpiritLab/IconArt/SpiritLab.jpg --out ios/SpiritLab/Assets.xcassets/AppIcon.appiconset/AppIcon.png
+          test -s ios/SpiritLab/Assets.xcassets/AppIcon.appiconset/AppIcon.png
       - name: Generate Xcode project
         run: |
           brew list xcodegen >/dev/null 2>&1 || brew install xcodegen
@@ -63,6 +70,6 @@ jobs:
           if git -C "$DEST" diff --cached --quiet; then
             echo 'No OTA changes'
           else
-            git -C "$DEST" commit -m "Publish SpiritLab v4.3.1 OTA package"
+            git -C "$DEST" commit -m "Publish SpiritLab v4.3.3 OTA package"
             git -C "$DEST" push origin HEAD:refs/heads/spiritlab-ios-updates
           fi
