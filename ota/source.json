@@ -16,10 +16,10 @@
       "category": "utilities",
       "versions": [
         {
-          "version": "4.3.1",
-          "buildVersion": "443",
-          "date": "2026-11-01T01:12:58+00:00",
-          "localizedDescription": "v4.3.1 build 443: native sensors and one-tap OTA.",
+          "version": "4.3.2",
+          "buildVersion": "444",
+          "date": "2026-11-01T01:14:38+00:00",
+          "localizedDescription": "v4.3.2 build 444: secure public HTTPS without phone Tailscale.",
           "downloadURL": "https://raw.githubusercontent.com/ddsheppard1984/ghostapp/spiritlab-ios-updates/ota/SpiritLab.ipa",
           "size": 80600,
           "minOSVersion": "17.0"
